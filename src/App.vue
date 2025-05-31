@@ -101,12 +101,7 @@ const initializeApp = async () => {
   initError.value = ''
 
   try {
-    const response = await fetch(
-      'https://github.com/masaru9002/kanadle/raw/main/public/jmdict-large.json',
-    )
-    const data = await response.json()
-
-    await initializeWordService(data)
+    await initializeWordService('https://cdn.jsdelivr.net/gh/masaru9002/kanadle@main/public/jmdict-large.json')
     loadingMessage.value = 'Initializing game...'
     await initializeGame()
 
