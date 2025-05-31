@@ -101,7 +101,7 @@ const initializeApp = async () => {
   initError.value = ''
 
   try {
-    await initializeWordService('https://cdn.jsdelivr.net/gh/masaru9002/kanadle@main/public/jmdict.json')
+    await initializeWordService('https://cdn.jsdelivr.net/gh/masaru9002/kanadle@main/public/jmdict-large.json')
     loadingMessage.value = 'Initializing game...'
     await initializeGame()
 
