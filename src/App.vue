@@ -42,6 +42,8 @@
           <Keyboard
             :letter-states="gameState.letterStates"
             :game-status="gameState.gameStatus"
+            :is-invalid-word="isInvalidWord"
+            :guesses="gameState.guesses"
             @letter-press="handleLetterPress"
             @enter="handleEnter"
             @backspace="handleBackspace"
@@ -90,6 +92,7 @@ const gameState = ref<GameState | null>(null)
 const showModal = ref(false)
 const errorMessage = ref('')
 const shakeBoard = ref(false)
+const isInvalidWord = ref(false)
 
 const targetWordMeanings = computed(() => {
   if (!gameState.value) return []
@@ -166,6 +169,7 @@ const handleEnter = async () => {
   if (!gameState.value) return
 
   clearErrorMessage()
+  isInvalidWord.value = false
 
   if (!gameService.canSubmitGuess(gameState.value)) {
     if (gameState.value.currentCol < 4) {
@@ -179,10 +183,12 @@ const handleEnter = async () => {
 
     if ('error' in newState) {
       showError('Invalid word')
+      isInvalidWord.value = true
       triggerShake()
       return
     }
 
+    isInvalidWord.value = false
     gameState.value = newState
     saveGame()
 

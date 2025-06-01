@@ -70,11 +70,13 @@
 <script setup lang="ts">
 import KeyboardKey from './KeyboardKey.vue'
 import type { LetterState } from '@/types'
-import { ref, defineEmits } from 'vue'
+import { ref, defineEmits, watch } from 'vue'
 
 interface Props {
   letterStates: Record<string, LetterState>
   gameStatus: 'won' | 'lost' | 'playing'
+  isInvalidWord?: boolean
+  guesses: string[]
 }
 
 const props = defineProps<Props>()
@@ -108,6 +110,24 @@ const rightRows = [right_row1, right_row2, right_row3, right_row4, right_row5]
 
 const typingInput = ref('')
 const lastValidInput = ref('')
+
+watch(
+  () => props.isInvalidWord,
+  (newVal, oldVal) => {
+    if (oldVal && !newVal && typingInput.value.length > 0) {
+      typingInput.value = ''
+      lastValidInput.value = ''
+    }
+  },
+)
+
+watch(
+  () => props.guesses.length,
+  () => {
+    typingInput.value = ''
+    lastValidInput.value = ''
+  },
+)
 
 function handleKeyPress(key: string) {
   if (key === 'ENTER') {
