@@ -44,7 +44,6 @@
       </button>
     </div>
 
-    <!-- How to Play -->
     <div
       v-if="showHowToPlay"
       class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
@@ -116,6 +115,19 @@
               <p class="mt-4">A new KANADLE will be available each day!</p>
               <p class="text-sm text-gray-600">毎日新しいKANADLEで遊べます！</p>
             </div>
+          </div>
+          <div class="border-t border-gray-200 mt-6 px-6 py-3 rounded-b-lg">
+            <p class="text-xs text-gray-500 text-center">
+              Link to
+              <a
+                href="https://github.com/masaru9002/kanadle"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-blue-600 hover:text-blue-800 underline"
+              >
+                Git Repository
+              </a>
+            </p>
           </div>
         </div>
       </div>
