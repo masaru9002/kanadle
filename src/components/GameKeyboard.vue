@@ -7,19 +7,13 @@
         @input="handleTypingInput"
         type="text"
         placeholder="Type here and press Enter"
-        class="border rounded px-2 py-1 text-base focus:outline-none focus:ring"
+        class="w-full sm:w-60 sm:mb-0 mb-2 text-base sm:text-lg bg-key-bg font-semibold rounded py-2 px-3 focus:outline-none transition-colors"
         :class="{ 'opacity-50 cursor-not-allowed': props.gameStatus !== 'playing' }"
         :disabled="props.gameStatus !== 'playing'"
         autocomplete="off"
         autocapitalize="off"
         spellcheck="false"
       />
-      <button
-        @click="clearTypingInput"
-        class="border rounded px-3 py-1 hover:bg-gray-100 text-sm sm:text-base"
-      >
-        Clear
-      </button>
     </div>
     <div class="keyboard-grid">
       <!-- Left column - Basic hiragana -->
@@ -113,58 +107,72 @@ const leftRows = [left_row1, left_row2, left_row3, left_row4, left_row5]
 const rightRows = [right_row1, right_row2, right_row3, right_row4, right_row5]
 
 const typingInput = ref('')
-
-function isHiragana(char: string): boolean {
-  const code = char.charCodeAt(0)
-  return code >= 0x3040 && code <= 0x309f
-}
+const lastValidInput = ref('')
 
 function handleKeyPress(key: string) {
-  emit('letterPress', key)
+  if (key === 'ENTER') {
+    emit('enter')
+  } else if (key === '⌫') {
+    emit('backspace')
+    const currentValue = typingInput.value
+    if (currentValue.length > 0) {
+      const newValue = currentValue.slice(0, -1)
+      typingInput.value = newValue
+      lastValidInput.value = newValue
+    }
+  } else {
+    emit('letterPress', key)
+    const newValue = typingInput.value + key
+    typingInput.value = newValue
+    lastValidInput.value = newValue
+  }
 }
 
 function handleTypingKeydown(event: KeyboardEvent) {
   if (props.gameStatus !== 'playing') {
-    event.preventDefault()
     return
   }
 
   if (event.key === 'Enter') {
     event.preventDefault()
-    submitTypingInput()
-    return
-  }
-
-  // Prevent non-hiragana characters from being typed (except backspace, delete, arrow keys, etc.)
-  if (event.key.length === 1 && !isHiragana(event.key)) {
-    event.preventDefault()
+    emit('enter')
+  } else if (event.key === 'Backspace') {
+    emit('backspace')
   }
 }
 
 function handleTypingInput(event: Event) {
+  if (props.gameStatus !== 'playing') {
+    return
+  }
+
   const target = event.target as HTMLInputElement
-  // Filter out any non-hiragana characters that might have slipped through
-  const filtered = target.value.split('').filter(isHiragana).join('')
-  if (filtered !== target.value) {
-    typingInput.value = filtered
+  const newValue = target.value
+
+  const cleanedNewValue = newValue.split('').filter(isHiragana).join('')
+
+  typingInput.value = cleanedNewValue
+
+  const previousValue = lastValidInput.value
+
+  syncBoardWithInput(previousValue, cleanedNewValue)
+
+  lastValidInput.value = cleanedNewValue
+}
+
+function syncBoardWithInput(oldValue: string, newValue: string) {
+  for (let i = 0; i < oldValue.length; i++) {
+    emit('backspace')
+  }
+
+  for (const char of newValue) {
+    emit('letterPress', char)
   }
 }
 
-function submitTypingInput() {
-  if (!typingInput.value) return
-
-  const chars = typingInput.value.split('')
-  chars.forEach((char) => {
-    if (isHiragana(char)) {
-      emit('letterPress', char)
-    }
-  })
-
-  typingInput.value = ''
-}
-
-function clearTypingInput() {
-  typingInput.value = ''
+function isHiragana(char: string): boolean {
+  const code = char.charCodeAt(0)
+  return code >= 0x3040 && code <= 0x309f
 }
 </script>
 

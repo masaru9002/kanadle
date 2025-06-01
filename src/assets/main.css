@@ -85,7 +85,7 @@
 }
 
 .keyboard {
-  @apply mt-4 px-1;
+  @apply px-1;
 }
 
 .keyboard-typing-space {

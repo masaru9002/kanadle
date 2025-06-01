@@ -73,7 +73,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import GameHeader from './components/GameHeader.vue'
 import GameBoard from './components/GameBoard.vue'
 import Keyboard from './components/GameKeyboard.vue'
@@ -198,25 +198,6 @@ const handleEnter = async () => {
   }
 }
 
-const handleKeydown = (event: KeyboardEvent) => {
-  if (!gameState.value || loading.value) return
-
-  if (event.key === 'Enter') {
-    event.preventDefault()
-    handleEnter()
-  } else if (event.key === 'Backspace') {
-    event.preventDefault()
-    handleBackspace()
-  } else if (event.key.length === 1) {
-    // Check if it's a hiragana character
-    const code = event.key.charCodeAt(0)
-    if (code >= 0x3040 && code <= 0x309f) {
-      event.preventDefault()
-      handleLetterPress(event.key)
-    }
-  }
-}
-
 const saveGame = () => {
   if (gameState.value) {
     gameService.saveGame(gameState.value)
@@ -254,11 +235,6 @@ const resetGame = async () => {
 
 onMounted(() => {
   initializeApp()
-  window.addEventListener('keydown', handleKeydown)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown)
 })
 </script>
 
