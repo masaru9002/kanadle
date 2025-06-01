@@ -13,6 +13,8 @@ There is no proper backend for this project yet. Everything is carried out on th
 
 I'll set up a proper backend for it soon.
 
+Edit: In the middle of making this, I discovered an exact same concept which is way better than this one, so uh time to kms I guess. Just FYI I was COMPLETELY unaware of it when making this.
+
 ## 🎮 How to Play
 
 1. Try to guess the 4-letter Hiragana word

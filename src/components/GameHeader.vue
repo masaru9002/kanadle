@@ -60,21 +60,21 @@
         <div class="p-6">
           <h2 class="text-2xl font-bold mb-4 text-center">
             How to Play
-            <div class="text-sm font-normal">遊び方</div>
+            <div class="text-sm font-normal">やり方</div>
           </h2>
           <div class="text-left space-y-4">
             <div>
               <p>Guess the word in 12 tries!</p>
-              <p class="text-sm text-gray-600">12回以内で単語を当ててください！</p>
+              <p class="text-sm text-gray-600">12回で単語を当てよう！</p>
             </div>
             <ul class="list-disc list-inside space-y-2">
               <li class="flex flex-col">
                 <span>Each guess must be a valid 4-character hiragana word</span>
-                <span class="text-sm text-gray-600">入力できるのは4文字のひらがな単語のみです</span>
+                <span class="text-sm text-gray-600">4文字のひらがなの単語を入力してください</span>
               </li>
               <li class="flex flex-col">
                 <span>The color of the tiles will change to show how close your guess was:</span>
-                <span class="text-sm text-gray-600">タイルの色で正解との距離がわかります：</span>
+                <span class="text-sm text-gray-600">タイルの色が正解のヒントになります：</span>
               </li>
             </ul>
             <div class="space-y-2">
@@ -86,7 +86,7 @@
                 </div>
                 <div>
                   <div>Correct letter in correct spot</div>
-                  <div class="text-sm text-gray-600">正しい文字が正しい位置にあります</div>
+                  <div class="text-sm text-gray-600">正解！位置も文字もばっちり</div>
                 </div>
               </div>
               <div class="flex items-center gap-2">
@@ -97,7 +97,7 @@
                 </div>
                 <div>
                   <div>Correct letter in wrong spot</div>
-                  <div class="text-sm text-gray-600">正しい文字が違う位置にあります</div>
+                  <div class="text-sm text-gray-600">文字は合ってるけど位置が違う</div>
                 </div>
               </div>
               <div class="flex items-center gap-2">
@@ -108,13 +108,13 @@
                 </div>
                 <div>
                   <div>Letter not in the word</div>
-                  <div class="text-sm text-gray-600">その文字は単語に含まれていません</div>
+                  <div class="text-sm text-gray-600">この文字は含まれていません</div>
                 </div>
               </div>
             </div>
             <div>
               <p class="mt-4">A new KANADLE will be available each day!</p>
-              <p class="text-sm text-gray-600">KANADLEは毎日更新されます！</p>
+              <p class="text-sm text-gray-600">毎日新しいKANADLEで遊べます！</p>
             </div>
           </div>
         </div>
