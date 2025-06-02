@@ -6,10 +6,10 @@
         @keydown="handleTypingKeydown"
         @input="handleTypingInput"
         type="text"
-        placeholder="Type here and press Enter"
+        :placeholder="inputPlaceholder"
         class="w-full sm:w-60 sm:mb-0 mb-2 text-base sm:text-lg bg-key-bg font-semibold rounded py-2 px-3 focus:outline-none transition-colors"
-        :class="{ 'opacity-50 cursor-not-allowed': props.gameStatus !== 'playing' }"
-        :disabled="props.gameStatus !== 'playing'"
+        :class="inputClasses"
+        :disabled="isInputDisabled"
         autocomplete="off"
         autocapitalize="off"
         spellcheck="false"
@@ -25,6 +25,7 @@
             :letter="key"
             :state="letterStates[key] || 'empty'"
             :class="{ 'key-wide': key === 'ENTER' || key === '⌫' }"
+            :disabled="isKeyboardDisabled"
             @click="
               key === 'ENTER'
                 ? emit('enter')
@@ -44,6 +45,7 @@
             :key="key"
             :letter="key"
             :state="letterStates[key] || 'empty'"
+            :disabled="isKeyboardDisabled"
             @click="handleKeyPress(key)"
           />
         </div>
@@ -55,9 +57,10 @@
         <KeyboardKey
           v-for="key in special_row"
           :key="key"
-          :letter="key"
+          :letter="key === 'ENTER' ? enterKeyText : key"
           :state="letterStates[key] || 'empty'"
           :class="{ 'key-wide': key === 'ENTER' || key === '⌫' }"
+          :disabled="isKeyboardDisabled"
           @click="
             key === 'ENTER' ? emit('enter') : key === '⌫' ? emit('backspace') : handleKeyPress(key)
           "
@@ -70,13 +73,14 @@
 <script setup lang="ts">
 import KeyboardKey from './KeyboardKey.vue'
 import type { LetterState } from '@/types'
-import { ref, defineEmits, watch } from 'vue'
+import { ref, defineEmits, watch, computed } from 'vue'
 
 interface Props {
   letterStates: Record<string, LetterState>
   gameStatus: 'won' | 'lost' | 'playing'
   isInvalidWord?: boolean
   guesses: string[]
+  isSubmitting?: boolean
 }
 
 const props = defineProps<Props>()
@@ -111,15 +115,23 @@ const rightRows = [right_row1, right_row2, right_row3, right_row4, right_row5]
 const typingInput = ref('')
 const lastValidInput = ref('')
 
-watch(
-  () => props.isInvalidWord,
-  (newVal, oldVal) => {
-    if (oldVal && !newVal && typingInput.value.length > 0) {
-      typingInput.value = ''
-      lastValidInput.value = ''
-    }
-  },
-)
+// Computed properties for UI state
+const isInputDisabled = computed(() => props.gameStatus !== 'playing' || props.isSubmitting)
+
+const isKeyboardDisabled = computed(() => props.gameStatus !== 'playing' || props.isSubmitting)
+
+const inputPlaceholder = computed(() => {
+  if (props.isSubmitting) return 'Submitting...'
+  if (props.gameStatus !== 'playing') return 'Game ended'
+  return 'Type here and press Enter'
+})
+
+const inputClasses = computed(() => ({
+  'opacity-50 cursor-not-allowed': isInputDisabled.value,
+  'animate-pulse': props.isSubmitting,
+}))
+
+const enterKeyText = computed(() => (props.isSubmitting ? '...' : 'ENTER'))
 
 watch(
   () => props.guesses.length,
@@ -130,8 +142,12 @@ watch(
 )
 
 function handleKeyPress(key: string) {
+  if (isKeyboardDisabled.value) return
+
   if (key === 'ENTER') {
-    emit('enter')
+    if (!props.isSubmitting) {
+      emit('enter')
+    }
   } else if (key === '⌫') {
     emit('backspace')
     const currentValue = typingInput.value
@@ -149,20 +165,23 @@ function handleKeyPress(key: string) {
 }
 
 function handleTypingKeydown(event: KeyboardEvent) {
-  if (props.gameStatus !== 'playing') {
+  if (isInputDisabled.value) {
+    event.preventDefault()
     return
   }
 
   if (event.key === 'Enter') {
     event.preventDefault()
-    emit('enter')
+    if (!props.isSubmitting) {
+      emit('enter')
+    }
   } else if (event.key === 'Backspace') {
     emit('backspace')
   }
 }
 
 function handleTypingInput(event: Event) {
-  if (props.gameStatus !== 'playing') {
+  if (isInputDisabled.value) {
     return
   }
 
@@ -251,7 +270,6 @@ function isHiragana(char: string): boolean {
     justify-content: flex-end;
   }
 
-  /* Special case for the enter/backspace row */
   .keyboard-full-width .keyboard-row.justify-center {
     justify-content: center;
   }
@@ -271,6 +289,20 @@ function isHiragana(char: string): boolean {
 
   input::placeholder {
     font-size: 0.85em;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
   }
 }
 </style>

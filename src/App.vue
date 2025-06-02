@@ -43,6 +43,7 @@
             :letter-states="gameState.letterStates"
             :game-status="gameState.gameStatus"
             :is-invalid-word="isInvalidWord"
+            :is-submitting="isSubmittingGuess"
             :guesses="gameState.guesses"
             @letter-press="handleLetterPress"
             @enter="handleEnter"
@@ -93,6 +94,7 @@ const showModal = ref(false)
 const errorMessage = ref('')
 const shakeBoard = ref(false)
 const isInvalidWord = ref(false)
+const isSubmittingGuess = ref(false)
 
 const targetWordMeanings = ref('')
 
@@ -144,7 +146,7 @@ const retryInitialization = () => {
 }
 
 const handleLetterPress = (letter: string) => {
-  if (!gameState.value) return
+  if (!gameState.value || isSubmittingGuess.value) return
 
   clearErrorMessage()
   gameState.value = gameService.addLetter(gameState.value, letter)
@@ -152,7 +154,7 @@ const handleLetterPress = (letter: string) => {
 }
 
 const handleBackspace = () => {
-  if (!gameState.value) return
+  if (!gameState.value || isSubmittingGuess.value) return
 
   clearErrorMessage()
   gameState.value = gameService.removeLetter(gameState.value)
@@ -160,7 +162,7 @@ const handleBackspace = () => {
 }
 
 const handleEnter = async () => {
-  if (!gameState.value) return
+  if (!gameState.value || isSubmittingGuess.value) return
 
   clearErrorMessage()
   isInvalidWord.value = false
@@ -171,6 +173,8 @@ const handleEnter = async () => {
     }
     return
   }
+
+  isSubmittingGuess.value = true
 
   try {
     const newState = await gameService.submitGuess(gameState.value)
@@ -195,6 +199,8 @@ const handleEnter = async () => {
     console.error('Error submitting guess:', error)
     showError('Could not verify word')
     triggerShake()
+  } finally {
+    isSubmittingGuess.value = false
   }
 }
 
