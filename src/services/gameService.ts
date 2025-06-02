@@ -242,46 +242,34 @@ class GameService {
     const targetArray = Array.from(target)
     const guessArray = Array.from(guess)
 
-    const targetPositions = new Map<string, Set<number>>()
+    const targetLetterCounts = new Map<string, number>()
+
+    const exactMatches = new Array(4).fill(false)
     for (let i = 0; i < 4; i++) {
       const letter = targetArray[i]
-      if (!targetPositions.has(letter)) {
-        targetPositions.set(letter, new Set())
-      }
-      targetPositions.get(letter)!.add(i)
+      targetLetterCounts.set(letter, (targetLetterCounts.get(letter) || 0) + 1)
     }
 
     for (let i = 0; i < 4; i++) {
       const letter = guessArray[i]
       if (letter === targetArray[i]) {
         letterStates[letter] = 'correct'
-        targetPositions.get(letter)!.delete(i)
+        exactMatches[i] = true
+        targetLetterCounts.set(letter, targetLetterCounts.get(letter)! - 1)
       }
     }
 
     for (let i = 0; i < 4; i++) {
-      const letter = guessArray[i]
-      if (letter !== targetArray[i]) {
-        let isCorrectLater = false
-        for (let j = i + 1; j < 4; j++) {
-          if (guessArray[j] === letter && guessArray[j] === targetArray[j]) {
-            isCorrectLater = true
-            break
-          }
-        }
+      if (exactMatches[i]) continue
 
-        if (
-          !isCorrectLater &&
-          targetPositions.has(letter) &&
-          targetPositions.get(letter)!.size > 0
-        ) {
-          letterStates[letter] = letterStates[letter] === 'correct' ? 'correct' : 'present'
-          const positions = targetPositions.get(letter)!
-          const positionsArray = Array.from(positions)
-          if (positionsArray.length > 0) {
-            positions.delete(positionsArray[0])
-          }
-        } else if (!letterStates[letter]) {
+      const letter = guessArray[i]
+      const availableCount = targetLetterCounts.get(letter) || 0
+
+      if (availableCount > 0) {
+        letterStates[letter] = letterStates[letter] === 'correct' ? 'correct' : 'present'
+        targetLetterCounts.set(letter, availableCount - 1)
+      } else {
+        if (!letterStates[letter]) {
           letterStates[letter] = 'absent'
         }
       }
@@ -292,19 +280,17 @@ class GameService {
     const guessArray = Array.from(guess)
     const targetArray = Array.from(target)
 
-    const targetPositions = new Map<string, Set<number>>()
+    const targetLetterCounts = new Map<string, number>()
+
     for (let i = 0; i < 4; i++) {
       const letter = targetArray[i]
-      if (!targetPositions.has(letter)) {
-        targetPositions.set(letter, new Set())
-      }
-      targetPositions.get(letter)!.add(i)
+      targetLetterCounts.set(letter, (targetLetterCounts.get(letter) || 0) + 1)
     }
 
     for (let i = 0; i < 4; i++) {
       const letter = guessArray[i]
       if (letter === targetArray[i]) {
-        targetPositions.get(letter)!.delete(i)
+        targetLetterCounts.set(letter, targetLetterCounts.get(letter)! - 1)
       }
     }
 
@@ -314,19 +300,16 @@ class GameService {
       return 'correct'
     }
 
-    if (targetPositions.has(currentLetter) && targetPositions.get(currentLetter)!.size > 0) {
-      for (let i = position + 1; i < 4; i++) {
-        if (guessArray[i] === currentLetter && guessArray[i] === targetArray[i]) {
-          return 'absent'
-        }
-      }
+    let availableCount = targetLetterCounts.get(currentLetter) || 0
 
-      const positions = targetPositions.get(currentLetter)!
-      const positionsArray = Array.from(positions)
-      if (positionsArray.length > 0) {
-        positions.delete(positionsArray[0])
-        return 'present'
+    for (let i = 0; i < position; i++) {
+      if (guessArray[i] === currentLetter && guessArray[i] !== targetArray[i]) {
+        availableCount--
       }
+    }
+
+    if (availableCount > 0) {
+      return 'present'
     }
 
     return 'absent'
