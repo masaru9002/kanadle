@@ -1,109 +1,203 @@
-import type { ProcessedWord, JMDictRoot } from '@/types'
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import type { ProcessedWord } from '@/types'
 import { isValidHiraganaWord } from '@/utils/validation'
 import { toRomaji } from 'wanakana'
+import axios, { type AxiosInstance, AxiosError } from 'axios'
+
+interface DailyWordResponse {
+  word: string
+  meanings: string[]
+  common: boolean
+}
+
+interface ValidateWordResponse {
+  valid: boolean
+  meanings?: string[]
+  common?: boolean
+}
+
+type WordDetailsResponse = ProcessedWord
+
+interface StatsResponse {
+  totalWords: number
+  commonWords: number
+  initialized: boolean
+  note?: string
+}
 
 class WordService {
-  private processedWords: Map<string, ProcessedWord> = new Map()
-  private fourLetterWords: string[] = []
+  private client: AxiosInstance
+  private cache: Map<string, ProcessedWord> = new Map()
   private isInitialized = false
+  private dailyWordResponse: DailyWordResponse | null = null
 
-  async initialize(jmdictData: JMDictRoot): Promise<void> {
-    for (const entry of jmdictData.words) {
-      for (const kanaEntry of entry.kana) {
-        const kanaText = kanaEntry.text
+  constructor(baseUrl: string = 'https://kanadleapi.vercel.app') {
+    const cleanBaseUrl = baseUrl.replace(/\/$/, '')
 
-        if (kanaText.length === 4 && isValidHiraganaWord(kanaText)) {
-          const meanings: string[] = []
-          const partOfSpeech: string[] = []
+    this.client = axios.create({
+      baseURL: cleanBaseUrl,
+      timeout: 10000,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      withCredentials: true,
+    })
 
-          for (const sense of entry.sense) {
-            for (const gloss of sense.gloss) {
-              if (gloss.lang === 'eng' && gloss.text) {
-                meanings.push(gloss.text)
-              }
-            }
+    this.client.interceptors.request.use(
+      (config) => config,
+      (error) => Promise.reject(error),
+    )
 
-            partOfSpeech.push(...sense.partOfSpeech)
-          }
+    this.client.interceptors.response.use(
+      (response) => response,
+      (error: AxiosError) => Promise.reject(error),
+    )
+  }
 
-          if (meanings.length > 0) {
-            const processedWord: ProcessedWord = {
-              text: kanaText,
-              common: kanaEntry.common,
-              meanings: [...new Set(meanings)],
-              partOfSpeech: [...new Set(partOfSpeech)],
-              tags: kanaEntry.tags,
-            }
-
-            this.processedWords.set(kanaText, processedWord)
-            this.fourLetterWords.push(kanaText)
-          }
-        }
-      }
+  private handleError(error: AxiosError, context: string): Error {
+    if (error.response) {
+      const status = error.response.status
+      const message = error.response.data || error.response.statusText
+      return new Error(`${context}: HTTP ${status} - ${message}`)
+    } else if (error.request) {
+      return new Error(`${context}: No response from server`)
+    } else {
+      return new Error(`${context}: ${error.message}`)
     }
+  }
 
-    this.fourLetterWords = [...new Set(this.fourLetterWords)]
-    this.isInitialized = true
+  async initialize(): Promise<void> {
+    try {
+      const response = await this.client.get<{ status: string; initialized: boolean }>(
+        '/api/health',
+      )
+
+      if (response.data.status === 'OK' && response.data.initialized) {
+        this.isInitialized = true
+      } else {
+        throw new Error('Backend not properly initialized')
+      }
+    } catch (error) {
+      const err = this.handleError(error as AxiosError, 'Failed to initialize WordService')
+      throw err
+    }
   }
 
   isReady(): boolean {
-    return this.isInitialized && this.fourLetterWords.length > 0
+    return this.isInitialized
   }
 
   async getDailyWord(): Promise<string> {
     if (!this.isReady()) {
-      throw new Error('WordService not initialized. Call initialize() first.')
+      throw new Error('WordService not initialized')
     }
 
-    const now = new Date()
-    const start = new Date(now.getFullYear(), 0, 0)
-    const diff = now.getTime() - start.getTime()
-    const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24))
+    try {
+      const response = await this.client.get<DailyWordResponse>('/api/daily-word')
+      this.dailyWordResponse = response.data
 
-    // Use the year as part of the seed to change the order each year
-    const seed = dayOfYear + now.getFullYear() * 365
+      this.cache.set(response.data.word, {
+        text: response.data.word,
+        meanings: response.data.meanings,
+        common: response.data.common,
+        partOfSpeech: [],
+        tags: [],
+      })
 
-    const wordPool = this.fourLetterWords
-
-    // Use a shuffle algorithm based on the seed
-    const prime1 = 31
-    const prime2 = 486187739
-    const m = wordPool.length
-    const index = Math.abs((seed * prime1 + prime2) % m)
-
-    return wordPool[index]
+      console.log('the answers in the console lol, but pls dont look at it thanks')
+      return response.data.word
+    } catch (error) {
+      throw this.handleError(error as AxiosError, 'Failed to get daily word')
+    }
   }
 
   async isValidWord(word: string): Promise<boolean> {
     if (!this.isReady()) {
-      throw new Error('WordService not initialized. Call initialize() first.')
+      throw new Error('WordService not initialized')
     }
 
     if (!isValidHiraganaWord(word) || word.length !== 4) {
       return false
     }
 
-    return this.processedWords.has(word)
+    try {
+      const response = await this.client.post<ValidateWordResponse>('/api/validate-word', {
+        word,
+      })
+
+      if (response.data.valid && response.data.meanings) {
+        this.cache.set(word, {
+          text: word,
+          meanings: response.data.meanings,
+          common: response.data.common || false,
+          partOfSpeech: [],
+          tags: [],
+        })
+      }
+
+      return response.data.valid
+    } catch (error) {
+      return false
+    }
   }
 
   async getRandomWord(): Promise<string> {
     if (!this.isReady()) {
-      throw new Error('WordService not initialized. Call initialize() first.')
+      throw new Error('WordService not initialized')
     }
 
-    const wordPool = this.fourLetterWords
-    return wordPool[Math.floor(Math.random() * wordPool.length)]
+    try {
+      const response = await this.client.get<DailyWordResponse>('/api/random-word')
+
+      this.cache.set(response.data.word, {
+        text: response.data.word,
+        meanings: response.data.meanings,
+        common: response.data.common,
+        partOfSpeech: [],
+        tags: [],
+      })
+
+      return response.data.word
+    } catch (error) {
+      throw this.handleError(error as AxiosError, 'Failed to get random word')
+    }
   }
 
-  getWordDetails(word: string): ProcessedWord | null {
+  async getWordDetails(word: string): Promise<ProcessedWord | null> {
     if (!this.isReady()) {
       return null
     }
 
-    return this.processedWords.get(word) || null
+    if (this.cache.has(word)) {
+      return this.cache.get(word)!
+    }
+
+    if (this.dailyWordResponse && this.dailyWordResponse.word === word) {
+      const processedWord: ProcessedWord = {
+        text: word,
+        meanings: this.dailyWordResponse.meanings,
+        common: this.dailyWordResponse.common,
+        partOfSpeech: [],
+        tags: [],
+      }
+      this.cache.set(word, processedWord)
+      return processedWord
+    }
+
+    try {
+      const response = await this.client.get<WordDetailsResponse>(
+        `/api/word/${encodeURIComponent(word)}`,
+      )
+
+      this.cache.set(word, response.data)
+      return response.data
+    } catch (error) {
+      return null
+    }
   }
-  getWordMeanings(word: string): string {
-    const details = this.getWordDetails(word)
+
+  async getWordMeanings(word: string): Promise<string> {
+    const details = await this.getWordDetails(word)
     if (!details) return ''
 
     const romaji = toRomaji(word).toLowerCase()
@@ -114,28 +208,25 @@ class WordService {
     return safeMeanings.join('; ')
   }
 
-  getAllWords(): string[] {
-    return [...this.fourLetterWords]
+  async getAllWords(): Promise<string[]> {
+    return []
   }
 
-  getCommonWords(): string[] {
-    return this.fourLetterWords.filter((word) => this.processedWords.get(word)?.common === true)
+  async getCommonWords(): Promise<string[]> {
+    return []
   }
 
-  getWordsByPartOfSpeech(pos: string): string[] {
-    return this.fourLetterWords.filter((word) => {
-      const details = this.processedWords.get(word)
-      return details?.partOfSpeech.some((p) => p.includes(pos))
-    })
+  async getWordsByPartOfSpeech(pos: string): Promise<string[]> {
+    return []
   }
 
-  getStats(): {
+  async getStats(): Promise<{
     totalWords: number
     commonWords: number
     nounsCount: number
     verbsCount: number
     adjectivesCount: number
-  } {
+  }> {
     if (!this.isReady()) {
       return {
         totalWords: 0,
@@ -146,48 +237,93 @@ class WordService {
       }
     }
 
-    const commonWords = this.getCommonWords().length
-    const nouns = this.getWordsByPartOfSpeech('n').length
-    const verbs = this.getWordsByPartOfSpeech('v').length
-    const adjectives = this.getWordsByPartOfSpeech('adj').length
+    try {
+      const response = await this.client.get<StatsResponse>('/api/stats')
 
-    return {
-      totalWords: this.fourLetterWords.length,
-      commonWords,
-      nounsCount: nouns,
-      verbsCount: verbs,
-      adjectivesCount: adjectives,
+      return {
+        totalWords: response.data.totalWords,
+        commonWords: response.data.commonWords,
+        nounsCount: 0,
+        verbsCount: 0,
+        adjectivesCount: 0,
+      }
+    } catch (error) {
+      return {
+        totalWords: 0,
+        commonWords: 0,
+        nounsCount: 0,
+        verbsCount: 0,
+        adjectivesCount: 0,
+      }
     }
   }
 
-  searchByPattern(pattern: string): string[] {
-    if (!this.isReady()) {
-      return []
-    }
-
-    const regex = new RegExp(pattern)
-    return this.fourLetterWords.filter((word) => regex.test(word))
+  async searchByPattern(pattern: string): Promise<string[]> {
+    return []
   }
 
-  getWordHint(word: string): string | null {
-    const hint = this.getWordMeanings(word)
-    return hint
+  async getWordHint(word: string): Promise<string | null> {
+    const hint = await this.getWordMeanings(word)
+    return hint || null
+  }
+
+  clearCache(): void {
+    this.cache.clear()
+  }
+
+  async checkHealth(): Promise<boolean> {
+    try {
+      const response = await this.client.get<{ status: string; initialized: boolean }>(
+        '/api/health',
+      )
+      return response.data.status === 'OK' && response.data.initialized
+    } catch (error) {
+      return false
+    }
+  }
+
+  async testConnection(): Promise<{ success: boolean; message: string }> {
+    try {
+      const response = await this.client.get('/api/health')
+      return {
+        success: true,
+        message: `Connected successfully! Status: ${response.data.status}, Initialized: ${response.data.initialized}`,
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError
+      if (axiosError.code === 'ECONNREFUSED') {
+        return {
+          success: false,
+          message: 'Connection refused',
+        }
+      } else if (axiosError.response) {
+        return {
+          success: false,
+          message: `Server responded with error: ${axiosError.response.status} ${axiosError.response.statusText}`,
+        }
+      } else {
+        return {
+          success: false,
+          message: `Network error: ${axiosError.message}`,
+        }
+      }
+    }
   }
 }
 
 export const wordService = new WordService()
 
-export async function initializeWordService(jmdictPath: string): Promise<void> {
+export async function initializeWordService(): Promise<void> {
   try {
-    const response = await fetch(jmdictPath)
-    if (!response.ok) {
-      throw new Error(`Failed to load JMDict: ${response.status} ${response.statusText}`)
-    }
-
-    const jmdictData: JMDictRoot = await response.json()
-
-    await wordService.initialize(jmdictData)
+    await wordService.initialize()
   } catch (error) {
     throw error
+  }
+}
+
+export async function testWordServiceConnection(): Promise<void> {
+  const result = await wordService.testConnection()
+  if (!result.success) {
+    throw new Error(result.message)
   }
 }

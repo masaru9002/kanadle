@@ -136,7 +136,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { gameService } from '@/services/gameService'
 
 interface Props {
@@ -151,10 +151,18 @@ defineEmits<{
 const showHint = ref(false)
 const showHowToPlay = ref(false)
 const isDark = ref(false)
+const hint = ref<string | null>(null)
 
-const hint = computed(() => {
-  return props.targetWord ? gameService.getWordHint(props.targetWord) : null
-})
+const updateHint = async (word: string | undefined) => {
+  if (word) {
+    const hintText = await gameService.getWordHint(word)
+    hint.value = hintText
+  } else {
+    hint.value = null
+  }
+}
+
+watch(() => props.targetWord, updateHint, { immediate: true })
 
 onMounted(() => {
   const savedTheme = localStorage.getItem('theme')

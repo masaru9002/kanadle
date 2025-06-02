@@ -101,7 +101,7 @@ class GameService {
     return this.createInitialState(randomWord)
   }
 
-  loadGame(): GameState | null {
+  async loadGame(): Promise<GameState | null> {
     const today = new Date().toDateString()
 
     try {
@@ -111,9 +111,12 @@ class GameService {
         const savedDate = parsed.date
 
         if (savedDate === today) {
-          this.gameState = parsed.state
-          this.gameDate = savedDate
-          return { ...(this.gameState as GameState) }
+          const dailyWord = await wordService.getDailyWord()
+          if (dailyWord === parsed.state.targetWord) {
+            this.gameState = parsed.state
+            this.gameDate = savedDate
+            return { ...(this.gameState as GameState) }
+          }
         }
       }
     } catch {
@@ -329,12 +332,12 @@ class GameService {
     return 'absent'
   }
 
-  getWordMeanings(word: string): string {
-    return wordService.getWordMeanings(word)
+  async getWordMeanings(word: string): Promise<string> {
+    return await wordService.getWordMeanings(word)
   }
 
-  getWordHint(word: string): string | null {
-    return wordService.getWordHint(word)
+  async getWordHint(word: string): Promise<string | null> {
+    return await wordService.getWordHint(word)
   }
 
   getWordDetails(word: string) {

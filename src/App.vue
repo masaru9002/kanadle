@@ -75,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import GameHeader from './components/GameHeader.vue'
 import GameBoard from './components/GameBoard.vue'
 import Keyboard from './components/GameKeyboard.vue'
@@ -94,38 +94,28 @@ const errorMessage = ref('')
 const shakeBoard = ref(false)
 const isInvalidWord = ref(false)
 
-const targetWordMeanings = computed(() => {
-  if (!gameState.value) return []
-  return gameService.getWordMeanings(gameState.value.targetWord)
-})
+const targetWordMeanings = ref('')
+
+watch(
+  () => gameState.value?.targetWord,
+  async (newWord: string | undefined) => {
+    if (newWord) {
+      targetWordMeanings.value = await gameService.getWordMeanings(newWord)
+    } else {
+      targetWordMeanings.value = ''
+    }
+  },
+)
 
 const initializeApp = async () => {
   loading.value = true
+  loadingMessage.value = 'Loading word data...'
   initError.value = ''
 
   try {
-    await initializeWordService(
-      'https://cdn.jsdelivr.net/gh/masaru9002/kanadle@main/public/jmdict.json',
-    )
-    loadingMessage.value = 'Initializing game...'
-    await initializeGame()
+    await initializeWordService()
 
-    loadingMessage.value = ''
-  } catch (error) {
-    initError.value = error instanceof Error ? error.message : 'Unknown error occurred'
-  } finally {
-    loading.value = false
-    loadingMessage.value = ''
-  }
-}
-
-const initializeGame = async () => {
-  try {
-    if (!gameService.isReady()) {
-      throw new Error('Game service is not ready. Word service must be initialized first.')
-    }
-
-    const savedGame = gameService.loadGame()
+    const savedGame = await gameService.loadGame()
 
     if (savedGame) {
       gameState.value = savedGame
@@ -133,14 +123,18 @@ const initializeGame = async () => {
       gameState.value = await gameService.createDailyGame()
       gameService.saveGame(gameState.value)
     }
+
+    loading.value = false
   } catch (error) {
     console.error('Failed to initialize game:', error)
     try {
       gameState.value = await gameService.createRandomGame()
       gameService.saveGame(gameState.value)
+      loading.value = false
     } catch (fallbackError) {
       console.error('Fallback also failed:', fallbackError)
-      throw new Error('Could not create any game. Something went wrong with the word data.')
+      loading.value = false
+      initError.value = 'Could not create any game. Something went wrong with the word data.'
     }
   }
 }
