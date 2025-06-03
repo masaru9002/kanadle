@@ -30,7 +30,7 @@ const keyClasses = computed(() => {
     case 'absent':
       return `${base} bg-absent text-white`
     default:
-      return `${base} bg-key-bg text-black hover:bg-gray-300`
+      return `${base} bg-key-bg dark:bg-[#818384] text-black dark:text-white hover:bg-gray-300 dark:hover:bg-[#717273]`
   }
 })
 </script>

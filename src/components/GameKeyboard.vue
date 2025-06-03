@@ -7,7 +7,7 @@
         @input="handleTypingInput"
         type="text"
         :placeholder="inputPlaceholder"
-        class="w-full sm:w-60 sm:mb-0 mb-2 text-base sm:text-lg bg-key-bg font-semibold rounded py-2 px-3 focus:outline-none transition-colors"
+        class="w-full sm:w-60 sm:mb-0 mb-2 text-base sm:text-lg font-semibold rounded py-2 px-3 focus:outline-none transition-colors bg-key-bg dark:bg-dark-bg text-gray-800 dark:text-dark-text border border-gray-200 dark:border-dark-border"
         :class="inputClasses"
         :disabled="isInputDisabled"
         autocomplete="off"
@@ -290,6 +290,24 @@ function isHiragana(char: string): boolean {
   input::placeholder {
     font-size: 0.85em;
   }
+}
+
+input {
+  background-color: var(--color-key-bg);
+}
+
+.dark input {
+  background-color: #818384;
+  border-color: #818384;
+}
+
+input::placeholder {
+  color: #787c7e;
+}
+
+.dark input::placeholder {
+  color: #d3d6da;
+  opacity: 0.7;
 }
 
 .animate-pulse {

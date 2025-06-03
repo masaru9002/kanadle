@@ -1,79 +1,105 @@
 <template>
-  <header class="game-header bg-white shadow relative w-full">
-    <div class="container mx-auto px-4 flex items-center h-16">
-      <div class="text-left sm:text-center sm:flex-1">
-        <h1 class="title text-2xl font-bold">KANADLE</h1>
-        <p class="subtitle text-sm text-gray-500">Wordle, but all Hiragana ( •̀ω •́ )</p>
-      </div>
-    </div>
-    <div
-      class="absolute top-1/2 right-4 transform -translate-y-1/2 flex items-center space-x-2 z-10"
-    >
-      <button
-        class="text-xl cursor-pointer sm:text-2xl p-1.5 sm:p-2 rounded-md flex items-center justify-center hover:bg-gray-100 transition-colors"
-        @click="showHowToPlay = true"
-        title="How to play"
-        aria-label="How to play"
+  <header class="game-header bg-white dark:bg-gray-900 shadow relative w-full">
+    <div class="container mx-auto px-4 flex items-center justify-between h-16 relative">
+      <!-- Logo/Title Section - Left aligned on mobile, centered on desktop -->
+      <div
+        class="text-left sm:absolute sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:text-center flex-1 sm:flex-none"
       >
-        ❔
-      </button>
-      <div class="relative">
+        <h1 class="title text-2xl font-bold text-gray-900 dark:text-gray-100">KANADLE</h1>
+        <p class="subtitle text-sm text-gray-500 dark:text-gray-400">
+          Wordle, but all Hiragana ( •̀ω •́ )
+        </p>
+      </div>
+
+      <!-- Spacer for desktop only -->
+      <div class="hidden sm:block flex-1"></div>
+
+      <div class="flex items-center gap-2 ml-2 sm:ml-0">
+        <!-- Theme toggle -->
         <button
-          class="text-xl cursor-pointer sm:text-2xl p-1.5 sm:p-2 rounded-md flex items-center justify-center hover:bg-gray-100 transition-colors"
-          @click="showHint = !showHint"
-          @blur="showHint = false"
-          title="Show hint"
-          aria-label="Show hint"
+          class="header-btn"
+          @click="toggleTheme"
+          :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+          :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
         >
-          💡
+          {{ isDark ? '☀️' : '🌙' }}
         </button>
-        <div
-          v-if="showHint && hint"
-          class="absolute cursor-pointer right-0 top-full mt-2 bg-white shadow-lg rounded-lg p-3 text-sm text-left whitespace-normal w-48 text-gray-800"
+
+        <!-- How to play -->
+        <button
+          class="header-btn"
+          @click="showHowToPlay = true"
+          title="How to play"
+          aria-label="How to play"
         >
-          Meaning: {{ hint }}
+          📚
+        </button>
+
+        <!-- Hint -->
+        <div class="relative">
+          <button
+            class="header-btn"
+            @click="showHint = !showHint"
+            @blur="showHint = false"
+            title="Show hint"
+            aria-label="Show hint"
+          >
+            💡
+          </button>
+          <div v-if="showHint && hint" class="hint-tooltip">Meaning: {{ hint }}</div>
         </div>
+
+        <!-- Stats -->
+        <button
+          class="header-btn"
+          @click="$emit('stats')"
+          title="View stats"
+          aria-label="View stats"
+        >
+          📊
+        </button>
       </div>
-      <button
-        class="cursor-pointer text-xl sm:text-2xl p-1.5 sm:p-2 rounded-md flex items-center justify-center hover:bg-gray-100 transition-colors"
-        @click="$emit('stats')"
-        title="View stats"
-        aria-label="View stats"
-      >
-        📊
-      </button>
     </div>
 
+    <!-- How to Play Modal -->
     <div
       v-if="showHowToPlay"
-      class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+      class="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center p-4 z-50"
       @click="showHowToPlay = false"
     >
-      <div class="bg-white rounded-lg max-w-md w-full relative" @click.stop>
+      <div class="bg-white dark:bg-[#121213] rounded-lg max-w-md w-full relative" @click.stop>
         <button
-          class="cursor-pointer absolute top-2 right-3 text-2xl text-gray-500 hover:text-gray-700"
+          class="absolute top-2 right-3 text-2xl text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 cursor-pointer"
           @click="showHowToPlay = false"
         >
           &times;
         </button>
         <div class="p-6">
-          <h2 class="text-2xl font-bold mb-4 text-center">
+          <h2 class="text-2xl font-bold mb-4 text-center text-gray-900 dark:text-gray-100">
             How to Play
-            <div class="text-sm font-normal">やり方</div>
+            <div class="text-sm font-normal text-gray-600 dark:text-gray-400">やり方</div>
           </h2>
           <div class="text-left space-y-4">
             <div>
-              <p>Guess the word in 12 tries!</p>
-              <p class="text-sm text-gray-600">12回で単語を当てよう！</p>
+              <p class="text-gray-900 dark:text-gray-100">Guess the word in 12 tries!</p>
+              <p class="text-sm text-gray-600 dark:text-gray-400">12回で単語を当てよう！</p>
             </div>
             <ul class="list-disc list-inside space-y-2">
               <li class="flex flex-col">
-                <span>Each guess must be a valid 4-character hiragana word</span>
-                <span class="text-sm text-gray-600">4文字のひらがなの単語を入力してください</span>
+                <span class="text-gray-900 dark:text-gray-100"
+                  >Each guess must be a valid 4-character hiragana word</span
+                >
+                <span class="text-sm text-gray-600 dark:text-gray-400"
+                  >4文字のひらがなの単語を入力してください</span
+                >
               </li>
               <li class="flex flex-col">
-                <span>The color of the tiles will change to show how close your guess was:</span>
-                <span class="text-sm text-gray-600">タイルの色が正解のヒントになります：</span>
+                <span class="text-gray-900 dark:text-gray-100"
+                  >The color of the tiles will change to show how close your guess was:</span
+                >
+                <span class="text-sm text-gray-600 dark:text-gray-400"
+                  >タイルの色が正解のヒントになります：</span
+                >
               </li>
             </ul>
             <div class="space-y-2">
@@ -84,8 +110,10 @@
                   あ
                 </div>
                 <div>
-                  <div>Correct letter in correct spot</div>
-                  <div class="text-sm text-gray-600">正解！位置も文字もばっちり</div>
+                  <div class="text-gray-900 dark:text-gray-100">Correct letter in correct spot</div>
+                  <div class="text-sm text-gray-600 dark:text-gray-400">
+                    正解！位置も文字もばっちり
+                  </div>
                 </div>
               </div>
               <div class="flex items-center gap-2">
@@ -95,8 +123,10 @@
                   い
                 </div>
                 <div>
-                  <div>Correct letter in wrong spot</div>
-                  <div class="text-sm text-gray-600">文字は合ってるけど位置が違う</div>
+                  <div class="text-gray-900 dark:text-gray-100">Correct letter in wrong spot</div>
+                  <div class="text-sm text-gray-600 dark:text-gray-400">
+                    文字は合ってるけど位置が違う
+                  </div>
                 </div>
               </div>
               <div class="flex items-center gap-2">
@@ -106,24 +136,28 @@
                   う
                 </div>
                 <div>
-                  <div>Letter not in the word</div>
-                  <div class="text-sm text-gray-600">この文字は含まれていません</div>
+                  <div class="text-gray-900 dark:text-gray-100">Letter not in the word</div>
+                  <div class="text-sm text-gray-600 dark:text-gray-400">
+                    この文字は含まれていません
+                  </div>
                 </div>
               </div>
             </div>
             <div>
-              <p class="mt-4">A new KANADLE will be available each day!</p>
-              <p class="text-sm text-gray-600">毎日新しいKANADLEで遊べます！</p>
+              <p class="mt-4 text-gray-900 dark:text-gray-100">
+                A new KANADLE will be available each day!
+              </p>
+              <p class="text-sm text-gray-600 dark:text-gray-400">毎日新しいKANADLEで遊べます！</p>
             </div>
           </div>
-          <div class="border-t border-gray-200 mt-6 px-6 py-3 rounded-b-lg">
-            <p class="text-xs text-gray-500 text-center">
+          <div class="border-t border-gray-200 dark:border-gray-600 mt-6 px-6 py-3 rounded-b-lg">
+            <p class="text-xs text-gray-500 dark:text-gray-400 text-center">
               Link to
               <a
                 href="https://github.com/masaru9002/kanadle"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="text-blue-600 hover:text-blue-800 underline"
+                class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
               >
                 Git Repository
               </a>
@@ -179,6 +213,15 @@ onMounted(() => {
     }
   }
 })
+
+const toggleTheme = () => {
+  isDark.value = !isDark.value
+  const html = document.querySelector('html')
+  if (html) {
+    html.classList.toggle('dark')
+    localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
+  }
+}
 </script>
 
 <style scoped>
@@ -192,5 +235,60 @@ onMounted(() => {
 
 .bg-absent {
   background-color: var(--color-absent);
+}
+
+.header-btn {
+  font-size: 1.25rem;
+  padding: 0.375rem;
+  border-radius: 0.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition-property: background-color, color;
+  transition-duration: 150ms;
+  cursor: pointer;
+  color: #374151;
+}
+
+@media (min-width: 640px) {
+  .header-btn {
+    font-size: 1.5rem;
+    padding: 0.5rem;
+  }
+}
+
+.header-btn:hover {
+  background-color: rgba(58, 58, 60, 0.1);
+}
+
+.dark .header-btn {
+  color: #e5e7eb;
+}
+
+.dark .header-btn:hover {
+  background-color: #3a3a3c;
+}
+
+.hint-tooltip {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  width: 12rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  text-align: left;
+  white-space: normal;
+  z-index: 20;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  background-color: white;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.dark .hint-tooltip {
+  background-color: #121213;
+  border-color: #3a3a3c;
 }
 </style>

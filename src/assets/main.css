@@ -1,35 +1,44 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
 @import 'tailwindcss';
 
+@variant dark (&:is(.dark *));
+
 @theme {
   --color-correct: #6aaa64;
   --color-present: #c9b458;
   --color-absent: #787c7e;
   --color-key-bg: #d3d6da;
+  --color-dark-bg: #121213;
+  --color-dark-text: #ffffff;
+  --color-dark-border: #3a3a3c;
+}
+
+:root.dark {
+  --color-absent: #3a3a3c;
 }
 
 .game-header {
-  @apply bg-white border-b-2 border-gray-200 py-2 sm:py-4;
+  @apply bg-white dark:bg-dark-bg border-b-2 border-gray-200 dark:border-dark-border py-2 sm:py-4;
 }
 
 .title {
-  @apply text-2xl sm:text-3xl font-bold text-center text-gray-800;
+  @apply text-2xl sm:text-3xl font-bold text-center text-gray-800 dark:text-dark-text;
 }
 
 .subtitle {
-  @apply text-xs sm:text-sm text-center text-gray-600 mt-1;
+  @apply text-xs sm:text-sm text-center text-gray-600 dark:text-gray-400 mt-1;
 }
 
 .modal-overlay {
-  @apply fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50;
+  @apply fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center p-4 z-50;
 }
 
 .modal-content {
-  @apply bg-white rounded-lg max-w-sm w-full relative;
+  @apply bg-white dark:bg-dark-bg rounded-lg max-w-sm w-full relative;
 }
 
 .modal-close {
-  @apply absolute top-2 right-3 text-2xl text-gray-500 hover:text-gray-700 cursor-pointer;
+  @apply absolute top-2 right-3 text-2xl text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer;
 }
 
 .modal-body {
@@ -69,11 +78,11 @@
 }
 
 .btn-primary {
-  @apply bg-green-600 text-white hover:bg-green-700;
+  @apply bg-green-600 text-white hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800;
 }
 
 .btn-secondary {
-  @apply bg-gray-200 text-gray-800 hover:bg-gray-300;
+  @apply bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600;
 }
 
 .game-container {
@@ -123,7 +132,7 @@ body {
     BlinkMacSystemFont,
     'Segoe UI',
     sans-serif;
-  @apply touch-manipulation;
+  @apply touch-manipulation bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-text;
 }
 
 .cell-flip {

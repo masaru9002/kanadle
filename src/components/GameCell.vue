@@ -34,9 +34,9 @@ const cellClasses = computed(() => {
     case 'absent':
       return `${base} bg-absent border-absent text-white`
     case 'filled':
-      return `${base} bg-white border-gray-400 text-black`
+      return `${base} bg-white dark:bg-[#121213] border-gray-400 dark:border-[#3a3a3c] text-black dark:text-white`
     default:
-      return `${base} bg-white border-gray-300 text-black`
+      return `${base} bg-white dark:bg-[#121213] border-gray-300 dark:border-[#3a3a3c] text-black dark:text-white`
   }
 })
 </script>
@@ -48,5 +48,29 @@ const cellClasses = computed(() => {
 
 .cell:not(.cell-flip) {
   transform: rotateX(0deg);
+}
+
+.bg-correct {
+  background-color: var(--color-correct);
+}
+
+.bg-present {
+  background-color: var(--color-present);
+}
+
+.bg-absent {
+  background-color: var(--color-absent);
+}
+
+.border-correct {
+  border-color: var(--color-correct);
+}
+
+.border-present {
+  border-color: var(--color-present);
+}
+
+.border-absent {
+  border-color: var(--color-absent);
 }
 </style>

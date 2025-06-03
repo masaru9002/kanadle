@@ -117,6 +117,29 @@ const shareResult = () => {
 </script>
 
 <style scoped>
+.modal-title {
+  color: var(--text-primary);
+}
+
+.modal-message {
+  color: var(--text-secondary);
+}
+
+.btn.btn-secondary {
+  background-color: #4caf50; /* Change to a distinct green color */
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+
+.btn.btn-secondary:hover {
+  opacity: 0.8;
+}
+
 .modal-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
@@ -130,19 +153,19 @@ const shareResult = () => {
   flex-direction: column;
   align-items: center;
   padding: 0.5rem;
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--bg-secondary);
   border-radius: 8px;
 }
 
 .stat-number {
   font-size: 1.5rem;
   font-weight: bold;
-  color: #4a90e2;
+  color: var(--accent-color);
 }
 
 .stat-label {
   font-size: 0.875rem;
-  color: #666;
+  color: var(--text-secondary);
   margin-top: 0.25rem;
 }
 
@@ -157,7 +180,7 @@ const shareResult = () => {
   left: 50%;
   transform: translateX(-50%);
   padding: 0.5rem 1rem;
-  background: rgba(0, 0, 0, 0.8);
+  background: #2d3748;
   color: white;
   border-radius: 4px;
   font-size: 0.875rem;

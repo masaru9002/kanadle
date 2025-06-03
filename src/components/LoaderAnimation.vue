@@ -1,7 +1,7 @@
 <template>
   <div class="loader-container">
     <div class="loader"></div>
-    <div v-if="message" class="loader-message">
+    <div v-if="message" class="loader-message text-gray-600 dark:text-gray-400">
       {{ message }}
     </div>
   </div>
@@ -23,7 +23,6 @@ defineProps<{
 
 .loader-message {
   font-size: 0.875rem;
-  opacity: 0.8;
 }
 
 .loader {

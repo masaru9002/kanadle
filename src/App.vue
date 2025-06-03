@@ -1,5 +1,5 @@
 <template>
-  <div id="app" class="min-h-screen flex flex-col items-center">
+  <div id="app" class="min-h-screen flex flex-col items-center dark:bg-dark-bg">
     <GameHeader
       v-if="!loading"
       @stats="showModal = true"
