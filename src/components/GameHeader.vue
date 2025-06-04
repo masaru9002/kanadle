@@ -1,7 +1,6 @@
 <template>
   <header class="game-header bg-white dark:bg-gray-900 shadow relative w-full">
     <div class="container mx-auto px-4 flex items-center justify-between h-16 relative">
-      <!-- Logo/Title Section - Left aligned on mobile, centered on desktop -->
       <div
         class="text-left sm:absolute sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:text-center flex-1 sm:flex-none"
       >
@@ -11,11 +10,9 @@
         </p>
       </div>
 
-      <!-- Spacer for desktop only -->
       <div class="hidden sm:block flex-1"></div>
 
       <div class="flex items-center gap-2 ml-2 sm:ml-0">
-        <!-- Theme toggle -->
         <button
           class="header-btn"
           @click="toggleTheme"
@@ -25,7 +22,6 @@
           {{ isDark ? '☀️' : '🌙' }}
         </button>
 
-        <!-- How to play -->
         <button
           class="header-btn"
           @click="showHowToPlay = true"
@@ -35,7 +31,6 @@
           📚
         </button>
 
-        <!-- Hint -->
         <div class="relative">
           <button
             class="header-btn"
@@ -49,7 +44,6 @@
           <div v-if="showHint && hint" class="hint-tooltip">Meaning: {{ hint }}</div>
         </div>
 
-        <!-- Stats -->
         <button
           class="header-btn"
           @click="$emit('stats')"
@@ -61,7 +55,6 @@
       </div>
     </div>
 
-    <!-- How to Play Modal -->
     <div
       v-if="showHowToPlay"
       class="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center p-4 z-50"
