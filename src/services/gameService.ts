@@ -102,25 +102,25 @@ class GameService {
   }
 
   async loadGame(): Promise<GameState | null> {
-    const today = new Date().toDateString()
-
     try {
       const savedState = localStorage.getItem(this.STORAGE_KEY)
       if (savedState) {
         const parsed = JSON.parse(savedState)
-        const savedDate = parsed.date
+        const savedTargetWord = parsed.state.targetWord
 
-        if (savedDate === today) {
-          const dailyWord = await wordService.getDailyWord()
-          if (dailyWord === parsed.state.targetWord) {
-            this.gameState = parsed.state
-            this.gameDate = savedDate
-            return { ...(this.gameState as GameState) }
-          }
+        const currentDailyWord = await wordService.getDailyWord()
+
+        if (savedTargetWord === currentDailyWord) {
+          this.gameState = parsed.state
+          this.gameDate = parsed.date
+          return { ...(this.gameState as GameState) }
+        } else {
+          this.clearGame()
+          return null
         }
       }
-    } catch {
-      console.error('Failed to load game state from localStorage')
+    } catch (error) {
+      console.error('Failed to load game state from localStorage', error)
     }
 
     this.gameState = null

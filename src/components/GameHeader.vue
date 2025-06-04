@@ -138,7 +138,7 @@
             </div>
             <div>
               <p class="mt-4 text-gray-900 dark:text-gray-100">
-                A new KANADLE will be available each day!
+                A new KANADLE will be available each day (JST)!
               </p>
               <p class="text-sm text-gray-600 dark:text-gray-400">毎日新しいKANADLEで遊べます！</p>
             </div>
